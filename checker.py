@@ -117,10 +117,16 @@ def _local_path(path, base_directory):
     try:
         base = os.fspath(base_directory)
         _validate_local_path_syntax(base)
-        boundary = Path(os.path.realpath(os.path.abspath(base)))
-        candidate = path if os.path.isabs(path) else os.path.join(boundary, path)
-        candidate = os.fspath(candidate)
-        absolute = Path(os.path.realpath(os.path.dirname(candidate))) / os.path.basename(candidate)
+        base_input = Path(os.path.abspath(base))
+        boundary = Path(os.path.realpath(base_input))
+        if os.path.isabs(path):
+            try:
+                relative = Path(os.path.abspath(path)).relative_to(base_input)
+            except ValueError as exc:
+                raise ValidationError("path must remain within base_directory") from exc
+        else:
+            relative = Path(path)
+        absolute = Path(os.path.abspath(boundary / relative))
         try:
             absolute.relative_to(boundary)
         except ValueError as exc:
