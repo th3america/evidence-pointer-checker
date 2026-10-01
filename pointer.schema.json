@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence pointer request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["claim", "path", "expected_sha256", "locator", "expected_value"],
+  "properties": {
+    "claim": {"type": "string", "minLength": 1, "maxLength": 10000},
+    "path": {"type": "string", "minLength": 1, "maxLength": 32767},
+    "expected_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "locator": {"type": "string", "pattern": "^(?:/(?:[^~/]|~[01])*)*$"},
+    "expected_value": {}
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "claim": "Synthetic fixture demonstrates a pointer contract only",
+  "path": "fixture.json",
+  "expected_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "locator": "/checks/summary",
+  "expected_value": "Synthetic example only"
+}
