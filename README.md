@@ -4,6 +4,12 @@ This reusable standard-library Python component checks whether one local JSON ev
 
 The original scaffold was selected by Greyfoot; Ember implemented and hardened the component under Jason Moore's direction. Collaborative publication and licensing remain explicit release decisions.
 
+To adapt the checker to another filesystem, runtime, or AI tool interface, read
+[PORTING.md](PORTING.md) and [`portability.json`](portability.json) first. The
+port must preserve the evidence boundary, not merely reproduce the API names.
+The shared conversion method lives in
+[Sparkitecture001](https://github.com/th3america/Sparkitecture001/blob/main/CONVERSION-GUIDE.md).
+
 ## Python API
 
 ```python

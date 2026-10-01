@@ -1,0 +1,25 @@
+{
+  "protocol": "PortableScaffold/1",
+  "project": "evidence-pointer-checker",
+  "entrypoints": ["checker.py"],
+  "interfaces": ["checker.check_pointer", "checker.load_request"],
+  "minimum_runtime": {"python": "3.10"},
+  "configuration": ["request JSON", "base_directory", "--output"],
+  "state": ["none; optional receipts are new output files"],
+  "adapters": ["local-file-open", "path-classifier", "strict-json-parser", "cli", "receipt-transport"],
+  "invariants": [
+    "pointer agreement never establishes claim truth",
+    "validation before evidence read",
+    "one bounded read binds hash and value",
+    "unsupported or mutated sources cannot verify",
+    "source and request are read-only",
+    "documented status and exit-code semantics"
+  ],
+  "verification_commands": [
+    "python -m unittest discover -s tests -v",
+    "python checker.py examples/valid.json",
+    "python checker.py examples/mismatch.json"
+  ],
+  "known_platform_variance": ["reparse and symlink privileges", "file sharing and locking", "device and network path syntax", "filesystem metadata precision"],
+  "authority_boundary": "The component observes local pointer agreement only and grants no authority to act."
+}
