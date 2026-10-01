@@ -10,6 +10,7 @@
   "invariants": [
     "pointer agreement never establishes claim truth",
     "validation before evidence read",
+    "source remains within the canonical base-directory boundary",
     "one bounded read binds hash and value",
     "unsupported or mutated sources cannot verify",
     "source and request are read-only",

@@ -129,6 +129,16 @@ class CheckerTests(unittest.TestCase):
                     self.check({**request, "path": path})
                 inspected.assert_not_called()
 
+    def test_source_cannot_escape_canonical_base_directory(self):
+        inner = self.base / "inner"
+        inner.mkdir()
+        outside = self.base / "outside.json"
+        outside.write_bytes(b'"outside"')
+        request = self.request(raw=b'"outside"', locator="", expected="outside")
+        for path in ("../outside.json", str(outside)):
+            with self.subTest(path=path), self.assertRaises(checker.ValidationError):
+                checker.check_pointer({**request, "path": path}, base_directory=inner)
+
     @unittest.skipUnless(os.name == "nt", "Windows-specific path forms")
     def test_windows_device_ads_and_drive_relative_paths_rejected(self):
         request = self.request()

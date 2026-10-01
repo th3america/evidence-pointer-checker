@@ -19,7 +19,7 @@ contract and filesystem semantics, not only the function names.
 | Adapter | Current implementation | Target contract |
 |---|---|---|
 | Local file open | Python `os.open` plus platform flags | Regular local file, no link following, bounded single read, best available writer/mutation resistance |
-| Path classification | Python/OS path rules | Reject URI, network, device, drive-relative, ADS, and traversed reparse forms appropriate to the target |
+| Path classification | Python/OS path rules | Canonicalize the trusted base, contain the source within it, and reject URI, network, device, drive-relative, ADS, and traversed reparse forms appropriate to the target |
 | JSON parser | strict Python JSON hooks | UTF-8, no duplicate keys/nonfinite values, preserved comparison semantics |
 | CLI wrapper | `argparse` | Preserve stdout/stderr JSON separation and exit codes 0/1/2 |
 | Receipt transport | JSON object/file | Preserve protocol, scope, limitations, and null for unperformed comparisons |

@@ -117,7 +117,14 @@ def _local_path(path, base_directory):
     try:
         base = os.fspath(base_directory)
         _validate_local_path_syntax(base)
-        absolute = Path(os.path.abspath(os.path.join(base, path)))
+        boundary = Path(os.path.realpath(os.path.abspath(base)))
+        candidate = path if os.path.isabs(path) else os.path.join(boundary, path)
+        candidate = os.fspath(candidate)
+        absolute = Path(os.path.realpath(os.path.dirname(candidate))) / os.path.basename(candidate)
+        try:
+            absolute.relative_to(boundary)
+        except ValueError as exc:
+            raise ValidationError("path must remain within base_directory") from exc
     except (TypeError, ValueError) as exc:
         if isinstance(exc, ValidationError):
             raise
@@ -127,12 +134,21 @@ def _local_path(path, base_directory):
         drive_type = ctypes.windll.kernel32.GetDriveTypeW(str(absolute.anchor))
         if drive_type == 4:
             raise ValidationError("Mapped network drives are outside the local-file contract")
-    return absolute
+    return absolute, boundary
 
 
-def _check_components(path):
-    """Inspect, rather than resolve/follow, every existing path component."""
-    for component in reversed((path, *path.parents)):
+def _check_components(path, boundary):
+    """Inspect every component from the trusted base boundary to the source."""
+    components = []
+    component = path
+    while True:
+        components.append(component)
+        if component == boundary:
+            break
+        if component.parent == component:
+            raise _InspectionError("unsupported_path_component", "Source escaped the trusted base directory")
+        component = component.parent
+    for component in reversed(components):
         metadata = component.lstat()
         if stat.S_ISLNK(metadata.st_mode) or getattr(metadata, "st_file_attributes", 0) & 0x400:
             raise _InspectionError("unsupported_reparse_path", "Symbolic links and reparse paths are not inspected")
@@ -184,8 +200,8 @@ def _open_source(path):
     return os.fdopen(fd, "rb", buffering=0)
 
 
-def _read_snapshot(path):
-    before_path = _check_components(path)
+def _read_snapshot(path, boundary):
+    before_path = _check_components(path, boundary)
     if not stat.S_ISREG(before_path.st_mode):
         raise _InspectionError("unsupported_file_type", "Only regular local files are supported")
     if before_path.st_size > MAX_BYTES:
@@ -206,7 +222,7 @@ def _read_snapshot(path):
         except OSError as exc:
             raise _InspectionError("io_error", str(exc), observation) from exc
         try:
-            after_path = _check_components(path)
+            after_path = _check_components(path, boundary)
         except (OSError, _InspectionError) as exc:
             observation["mutation_detected"] = True
             raise _InspectionError("source_changed", "Source path could not be confirmed after reading", observation) from exc
@@ -311,7 +327,7 @@ def check_pointer(request, *, base_directory):
         request = copy.deepcopy(request)
     except RecursionError as exc:
         raise ValidationError("Request exceeds the supported JSON nesting depth") from exc
-    path = _local_path(request["path"], base_directory)
+    path, boundary = _local_path(request["path"], base_directory)
     receipt = {
         "protocol": PROTOCOL, "status": "UNAVAILABLE", "scope": "pointer_agreement_only",
         "claim": request["claim"], "claim_truth_verified": False, "path": str(path),
@@ -328,7 +344,7 @@ def check_pointer(request, *, base_directory):
         return receipt
 
     try:
-        data, observation = _read_snapshot(path)
+        data, observation = _read_snapshot(path, boundary)
         receipt["observation"].update(observation)
     except FileNotFoundError:
         return finish("MISSING", "file_not_found", "The local filesystem explicitly reported file not found")
@@ -360,9 +376,10 @@ def check_pointer(request, *, base_directory):
 
 def load_request(path):
     """Load a request strictly; duplicate keys and nonfinite values are errors."""
-    source = _local_path(os.fspath(path), Path.cwd())
+    requested = Path(path).absolute()
+    source, boundary = _local_path(os.fspath(requested), requested.parent)
     try:
-        data, _ = _read_snapshot(source)
+        data, _ = _read_snapshot(source, boundary)
         request = _decode_json(data)
     except (OSError, _InspectionError, _SourceJsonError) as exc:
         raise ValidationError(f"Cannot load request: {exc}") from exc
