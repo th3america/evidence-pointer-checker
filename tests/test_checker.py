@@ -179,7 +179,7 @@ class CheckerTests(unittest.TestCase):
         original = Path.lstat
         def marked(path):
             actual = original(path)
-            if path == self.source:
+            if path.name == self.source.name:
                 return SimpleNamespace(st_mode=actual.st_mode, st_file_attributes=0x400)
             return actual
         with mock.patch.object(Path, "lstat", marked), mock.patch.object(checker, "_open_source") as opened:
