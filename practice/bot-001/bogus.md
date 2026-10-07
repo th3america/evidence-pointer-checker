@@ -1,3 +1,0 @@
-# Bogus
-
-Practice workspace placeholder.
