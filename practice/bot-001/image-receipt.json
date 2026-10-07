@@ -1,0 +1,15 @@
+{
+  "protocol": "ImageInsertion/1",
+  "run_id": "20261007-101055-image-document-e335de",
+  "actor": "practice-bot-001",
+  "input_sha256": "4b02f3eb35f83aefd80cd0e2e5ed927d28b9bfba7e4b1ff3e0768d56bc48f017",
+  "artifacts": {
+    "architecture.png": "4b02f3eb35f83aefd80cd0e2e5ed927d28b9bfba7e4b1ff3e0768d56bc48f017",
+    "practice.html": "bc77f08c466e6e6ac089c86fb305604d6356f3e9c1372e0b83813a432cee0f96",
+    "practice.md": "9eadb6d66e9ad27d2f1a7ea2f5b4517351fa1f2b00f1f23283725d25e026e86b"
+  },
+  "status": "written",
+  "limitations": [
+    "Browser appearance requires separate rendered inspection."
+  ]
+}
